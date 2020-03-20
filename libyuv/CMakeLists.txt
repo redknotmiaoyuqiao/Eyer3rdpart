@@ -31,8 +31,8 @@ ADD_LIBRARY				( ${ly_lib_static} STATIC ${ly_source_files} )
 ## SET_TARGET_PROPERTIES	( ${ly_lib_shared} PROPERTIES PREFIX "lib" )
 
 # this creates the conversion tool
-ADD_EXECUTABLE			( yuvconvert ${ly_base_dir}/util/yuvconvert.cc )
-TARGET_LINK_LIBRARIES	( yuvconvert ${ly_lib_static} )
+## ADD_EXECUTABLE			( yuvconvert ${ly_base_dir}/util/yuvconvert.cc )
+## TARGET_LINK_LIBRARIES	( yuvconvert ${ly_lib_static} )
 
 
 INCLUDE ( FindJPEG )
