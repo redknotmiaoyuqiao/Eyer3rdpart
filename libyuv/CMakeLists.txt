@@ -12,7 +12,7 @@ SET ( ly_inc_dir	${ly_base_dir}/include )
 SET ( ly_tst_dir	${ly_base_dir}/unit_test )
 SET ( ly_lib_name	yuv )
 SET ( ly_lib_static	${ly_lib_name} )
-SET ( ly_lib_shared	${ly_lib_name}_shared )
+## SET ( ly_lib_shared	${ly_lib_name}_shared )
 
 FILE ( GLOB_RECURSE	ly_source_files ${ly_src_dir}/*.cc )
 LIST ( SORT			ly_source_files )
@@ -26,9 +26,9 @@ INCLUDE_DIRECTORIES( BEFORE ${ly_inc_dir} )
 ADD_LIBRARY				( ${ly_lib_static} STATIC ${ly_source_files} )
 
 # this creates the shared library (.so)
-ADD_LIBRARY				( ${ly_lib_shared} SHARED ${ly_source_files} )
-SET_TARGET_PROPERTIES	( ${ly_lib_shared} PROPERTIES OUTPUT_NAME "${ly_lib_name}" )
-SET_TARGET_PROPERTIES	( ${ly_lib_shared} PROPERTIES PREFIX "lib" )
+## ADD_LIBRARY				( ${ly_lib_shared} SHARED ${ly_source_files} )
+## SET_TARGET_PROPERTIES	( ${ly_lib_shared} PROPERTIES OUTPUT_NAME "${ly_lib_name}" )
+## SET_TARGET_PROPERTIES	( ${ly_lib_shared} PROPERTIES PREFIX "lib" )
 
 # this creates the conversion tool
 ADD_EXECUTABLE			( yuvconvert ${ly_base_dir}/util/yuvconvert.cc )
@@ -37,9 +37,9 @@ TARGET_LINK_LIBRARIES	( yuvconvert ${ly_lib_static} )
 
 INCLUDE ( FindJPEG )
 if (JPEG_FOUND)
-  include_directories( ${JPEG_INCLUDE_DIR} )
-  target_link_libraries( yuvconvert ${JPEG_LIBRARY} )
-  add_definitions( -DHAVE_JPEG )
+  ## include_directories( ${JPEG_INCLUDE_DIR} )
+  ## target_link_libraries( yuvconvert ${JPEG_LIBRARY} )
+  ## add_definitions( -DHAVE_JPEG )
 endif()
 
 if(TEST)
@@ -83,7 +83,7 @@ endif()
 # install the conversion tool, .so, .a, and all the header files
 # INSTALL ( PROGRAMS ${CMAKE_BINARY_DIR}/yuvconvert			DESTINATION bin )
 INSTALL ( TARGETS ${ly_lib_static}						DESTINATION lib )
-INSTALL ( TARGETS ${ly_lib_shared} LIBRARY				DESTINATION lib RUNTIME DESTINATION bin )
+## INSTALL ( TARGETS ${ly_lib_shared} LIBRARY				DESTINATION lib RUNTIME DESTINATION bin )
 INSTALL ( DIRECTORY ${PROJECT_SOURCE_DIR}/include/		DESTINATION include )
 
 # create the .deb and .rpm packages using cpack
