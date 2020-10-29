@@ -90,10 +90,10 @@ include $(BUILD_STATIC_LIBRARY)
 # For the host
 # ========================================================
 
-include $(CLEAR_VARS)
-LOCAL_SRC_FILES := $(common_SRC_FILES)
-LOCAL_C_INCLUDES += $(common_C_INCLUDES)
-LOCAL_CFLAGS += $(DISABLED_WARNING_FLAGS)
-LOCAL_SHARED_LIBRARIES += $(common_SHARED_LIBRARIES)
-LOCAL_MODULE:= libxml2
-include $(BUILD_HOST_STATIC_LIBRARY)
+# include $(CLEAR_VARS)
+# LOCAL_SRC_FILES := $(common_SRC_FILES)
+# LOCAL_C_INCLUDES += $(common_C_INCLUDES)
+# LOCAL_CFLAGS += $(DISABLED_WARNING_FLAGS)
+# LOCAL_SHARED_LIBRARIES += $(common_SHARED_LIBRARIES)
+# LOCAL_MODULE:= libxml2
+# include $(BUILD_HOST_STATIC_LIBRARY)
