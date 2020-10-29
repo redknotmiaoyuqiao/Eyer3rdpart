@@ -10,7 +10,7 @@
  *
  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE AUTHORS AND
+ * MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE AUTHORS AND
  * CONTRIBUTORS ACCEPT NO RESPONSIBILITY IN ANY CONCEIVABLE MANNER.
  *
  * Author: daniel@veillard.com
@@ -38,8 +38,7 @@
  *  list we will use the BigKey algo as soon as the hash size grows
  *  over MIN_DICT_SIZE so this actually works
  */
-#if defined(HAVE_RAND) && defined(HAVE_SRAND) && defined(HAVE_TIME) && \
-    !defined(FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
+#if defined(HAVE_RAND) && defined(HAVE_SRAND) && defined(HAVE_TIME)
 #define DICT_RANDOMIZATION
 #endif
 
@@ -49,7 +48,7 @@
 #else
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
-#elif defined(_WIN32)
+#elif defined(WIN32)
 typedef unsigned __int32 uint32_t;
 #endif
 #endif
@@ -88,7 +87,7 @@ typedef unsigned __int32 uint32_t;
 #endif /* WITH_BIG_KEY */
 
 /*
- * An entry in the dictionary
+ * An entry in the dictionnary
  */
 typedef struct _xmlDictEntry xmlDictEntry;
 typedef xmlDictEntry *xmlDictEntryPtr;
@@ -111,7 +110,7 @@ struct _xmlDictStrings {
     xmlChar array[1];
 };
 /*
- * The entire dictionary
+ * The entire dictionnary
  */
 struct _xmlDict {
     int ref_counter;
@@ -230,7 +229,7 @@ xmlDictCleanup(void) {
 
 /*
  * xmlDictAddString:
- * @dict: the dictionary
+ * @dict: the dictionnary
  * @name: the name of the userdata
  * @len: the length of the name
  *
@@ -250,7 +249,7 @@ xmlDictAddString(xmlDictPtr dict, const xmlChar *name, unsigned int namelen) {
 #endif
     pool = dict->strings;
     while (pool != NULL) {
-	if ((size_t)(pool->end - pool->free) > namelen)
+	if (pool->end - pool->free > namelen)
 	    goto found_pool;
 	if (pool->size > size) size = pool->size;
         limit += pool->size;
@@ -292,7 +291,7 @@ found_pool:
 
 /*
  * xmlDictAddQString:
- * @dict: the dictionary
+ * @dict: the dictionnary
  * @prefix: the prefix of the userdata
  * @plen: the prefix length
  * @name: the name of the userdata
@@ -318,7 +317,7 @@ xmlDictAddQString(xmlDictPtr dict, const xmlChar *prefix, unsigned int plen,
 #endif
     pool = dict->strings;
     while (pool != NULL) {
-	if ((size_t)(pool->end - pool->free) > namelen + plen + 1)
+	if (pool->end - pool->free > namelen + plen + 1)
 	    goto found_pool;
 	if (pool->size > size) size = pool->size;
         limit += pool->size;
@@ -372,9 +371,6 @@ found_pool:
  * http://burtleburtle.net/bob/hash/doobs.html
  */
 
-#ifdef __clang__
-ATTRIBUTE_NO_SANITIZE("unsigned-integer-overflow")
-#endif
 static uint32_t
 xmlDictComputeBigKey(const xmlChar* data, int namelen, int seed) {
     uint32_t hash;
@@ -407,9 +403,6 @@ xmlDictComputeBigKey(const xmlChar* data, int namelen, int seed) {
  *
  * Neither of the two strings must be NULL.
  */
-#ifdef __clang__
-ATTRIBUTE_NO_SANITIZE("unsigned-integer-overflow")
-#endif
 static unsigned long
 xmlDictComputeBigQKey(const xmlChar *prefix, int plen,
                       const xmlChar *name, int len, int seed)
@@ -452,7 +445,7 @@ xmlDictComputeFastKey(const xmlChar *name, int namelen, int seed) {
     unsigned long value = seed;
 
     if (name == NULL) return(0);
-    value += *name;
+    value = *name;
     value <<= 5;
     if (namelen > 10) {
         value += name[namelen - 1];
@@ -460,23 +453,14 @@ xmlDictComputeFastKey(const xmlChar *name, int namelen, int seed) {
     }
     switch (namelen) {
         case 10: value += name[9];
-        /* Falls through. */
         case 9: value += name[8];
-        /* Falls through. */
         case 8: value += name[7];
-        /* Falls through. */
         case 7: value += name[6];
-        /* Falls through. */
         case 6: value += name[5];
-        /* Falls through. */
         case 5: value += name[4];
-        /* Falls through. */
         case 4: value += name[3];
-        /* Falls through. */
         case 3: value += name[2];
-        /* Falls through. */
         case 2: value += name[1];
-        /* Falls through. */
         default: break;
     }
     return(value);
@@ -502,35 +486,22 @@ xmlDictComputeFastQKey(const xmlChar *prefix, int plen,
 	value += 30 * (*prefix);
 
     if (len > 10) {
-        int offset = len - (plen + 1 + 1);
-	if (offset < 0)
-	    offset = len - (10 + 1);
-	value += name[offset];
+        value += name[len - (plen + 1 + 1)];
         len = 10;
 	if (plen > 10)
 	    plen = 10;
     }
     switch (plen) {
         case 10: value += prefix[9];
-        /* Falls through. */
         case 9: value += prefix[8];
-        /* Falls through. */
         case 8: value += prefix[7];
-        /* Falls through. */
         case 7: value += prefix[6];
-        /* Falls through. */
         case 6: value += prefix[5];
-        /* Falls through. */
         case 5: value += prefix[4];
-        /* Falls through. */
         case 4: value += prefix[3];
-        /* Falls through. */
         case 3: value += prefix[2];
-        /* Falls through. */
         case 2: value += prefix[1];
-        /* Falls through. */
         case 1: value += prefix[0];
-        /* Falls through. */
         default: break;
     }
     len -= plen;
@@ -540,25 +511,15 @@ xmlDictComputeFastQKey(const xmlChar *prefix, int plen,
     }
     switch (len) {
         case 10: value += name[9];
-        /* Falls through. */
         case 9: value += name[8];
-        /* Falls through. */
         case 8: value += name[7];
-        /* Falls through. */
         case 7: value += name[6];
-        /* Falls through. */
         case 6: value += name[5];
-        /* Falls through. */
         case 5: value += name[4];
-        /* Falls through. */
         case 4: value += name[3];
-        /* Falls through. */
         case 3: value += name[2];
-        /* Falls through. */
         case 2: value += name[1];
-        /* Falls through. */
         case 1: value += name[0];
-        /* Falls through. */
         default: break;
     }
     return(value);
@@ -569,7 +530,7 @@ xmlDictComputeFastQKey(const xmlChar *prefix, int plen,
  *
  * Create a new dictionary
  *
- * Returns the newly created dictionary, or NULL if an error occurred.
+ * Returns the newly created dictionnary, or NULL if an error occured.
  */
 xmlDictPtr
 xmlDictCreate(void) {
@@ -609,14 +570,14 @@ xmlDictCreate(void) {
 
 /**
  * xmlDictCreateSub:
- * @sub: an existing dictionary
+ * @sub: an existing dictionnary
  *
  * Create a new dictionary, inheriting strings from the read-only
- * dictionary @sub. On lookup, strings are first searched in the
- * new dictionary, then in @sub, and if not found are created in the
- * new dictionary.
+ * dictionnary @sub. On lookup, strings are first searched in the
+ * new dictionnary, then in @sub, and if not found are created in the
+ * new dictionnary.
  *
- * Returns the newly created dictionary, or NULL if an error occurred.
+ * Returns the newly created dictionnary, or NULL if an error occured.
  */
 xmlDictPtr
 xmlDictCreateSub(xmlDictPtr sub) {
@@ -635,7 +596,7 @@ xmlDictCreateSub(xmlDictPtr sub) {
 
 /**
  * xmlDictReference:
- * @dict: the dictionary
+ * @dict: the dictionnary
  *
  * Increment the reference counter of a dictionary
  *
@@ -656,10 +617,10 @@ xmlDictReference(xmlDictPtr dict) {
 
 /**
  * xmlDictGrow:
- * @dict: the dictionary
- * @size: the new size of the dictionary
+ * @dict: the dictionnary
+ * @size: the new size of the dictionnary
  *
- * resize the dictionary
+ * resize the dictionnary
  *
  * Returns 0 in case of success, -1 in case of failure
  */
@@ -734,8 +695,8 @@ xmlDictGrow(xmlDictPtr dict, size_t size) {
 		dict->dict[key].next = entry;
 	    } else {
 	        /*
-		 * we don't have much ways to alert from here
-		 * result is losing an entry and unicity guarantee
+		 * we don't have much ways to alert from herei
+		 * result is loosing an entry and unicity garantee
 		 */
 	        ret = -1;
 	    }
@@ -791,7 +752,7 @@ xmlDictGrow(xmlDictPtr dict, size_t size) {
 
 /**
  * xmlDictFree:
- * @dict: the dictionary
+ * @dict: the dictionnary
  *
  * Free the hash @dict and its contents. The userdata is
  * deallocated with @f if provided.
@@ -853,11 +814,11 @@ xmlDictFree(xmlDictPtr dict) {
 
 /**
  * xmlDictLookup:
- * @dict: the dictionary
+ * @dict: the dictionnary
  * @name: the name of the userdata
  * @len: the length of the name, if -1 it is recomputed
  *
- * Add the @name to the dictionary @dict if not present.
+ * Add the @name to the dictionnary @dict if not present.
  *
  * Returns the internal copy of the name or NULL in case of internal error
  */
@@ -993,11 +954,11 @@ xmlDictLookup(xmlDictPtr dict, const xmlChar *name, int len) {
 
 /**
  * xmlDictExists:
- * @dict: the dictionary
+ * @dict: the dictionnary
  * @name: the name of the userdata
  * @len: the length of the name, if -1 it is recomputed
  *
- * Check if the @name exists in the dictionary @dict.
+ * Check if the @name exists in the dictionnary @dict.
  *
  * Returns the internal copy of the name or NULL if not found.
  */
@@ -1101,7 +1062,7 @@ xmlDictExists(xmlDictPtr dict, const xmlChar *name, int len) {
 
 /**
  * xmlDictQLookup:
- * @dict: the dictionary
+ * @dict: the dictionnary
  * @prefix: the prefix
  * @name: the name
  *
@@ -1206,10 +1167,10 @@ xmlDictQLookup(xmlDictPtr dict, const xmlChar *prefix, const xmlChar *name) {
 
 /**
  * xmlDictOwns:
- * @dict: the dictionary
+ * @dict: the dictionnary
  * @str: the string
  *
- * check if a string is owned by the dictionary
+ * check if a string is owned by the disctionary
  *
  * Returns 1 if true, 0 if false and -1 in case of error
  * -1 in case of error
@@ -1233,11 +1194,11 @@ xmlDictOwns(xmlDictPtr dict, const xmlChar *str) {
 
 /**
  * xmlDictSize:
- * @dict: the dictionary
+ * @dict: the dictionnary
  *
  * Query the number of elements installed in the hash @dict.
  *
- * Returns the number of elements in the dictionary or
+ * Returns the number of elements in the dictionnary or
  * -1 in case of error
  */
 int
@@ -1251,7 +1212,7 @@ xmlDictSize(xmlDictPtr dict) {
 
 /**
  * xmlDictSetLimit:
- * @dict: the dictionary
+ * @dict: the dictionnary
  * @limit: the limit in bytes
  *
  * Set a size limit for the dictionary
@@ -1272,7 +1233,7 @@ xmlDictSetLimit(xmlDictPtr dict, size_t limit) {
 
 /**
  * xmlDictGetUsage:
- * @dict: the dictionary
+ * @dict: the dictionnary
  *
  * Get how much memory is used by a dictionary for strings
  * Added in 2.9.0

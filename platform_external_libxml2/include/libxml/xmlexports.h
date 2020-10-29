@@ -73,6 +73,9 @@
     #define XMLCALL __cdecl
   #endif
   #define XMLCDECL __cdecl
+  #if !defined _REENTRANT
+    #define _REENTRANT
+  #endif
 #endif
 
 /* Windows platform with Borland compiler */
@@ -94,6 +97,9 @@
   #endif
   #define XMLCALL __cdecl
   #define XMLCDECL __cdecl
+  #if !defined _REENTRANT
+    #define _REENTRANT
+  #endif
 #endif
 
 /* Windows platform with GNU compiler (Mingw) */
@@ -120,10 +126,13 @@
   #endif
   #define XMLCALL __cdecl
   #define XMLCDECL __cdecl
+  #if !defined _REENTRANT
+    #define _REENTRANT
+  #endif
 #endif
 
-/* Cygwin platform (does not define _WIN32), GNU compiler */
-#if defined(__CYGWIN__)
+/* Cygwin platform, GNU compiler */
+#if defined(_WIN32) && defined(__CYGWIN__)
   #undef XMLPUBFUN
   #undef XMLPUBVAR
   #undef XMLCALL
@@ -136,7 +145,7 @@
     #if !defined(LIBXML_STATIC)
       #define XMLPUBVAR __declspec(dllimport) extern
     #else
-      #define XMLPUBVAR extern
+      #define XMLPUBVAR
     #endif
   #endif
   #define XMLCALL __cdecl

@@ -12,6 +12,8 @@
 #define HAVE_NETINET_IN_H
 #define HAVE_NETDB_H
 #define HAVE_SYS_TIME_H
+#else /* TESTING */
+#define NEED_SOCKETS
 #endif /* TESTING */
 
 #define IN_LIBXML
@@ -75,8 +77,14 @@
 #endif
 
 
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#if defined(__MINGW32__) || defined(_WIN32_WCE)
+#ifndef _WINSOCKAPI_
+#define _WINSOCKAPI_
+#endif
 #include <wsockcompat.h>
+#include <winsock2.h>
+#undef XML_SOCKLEN_T
+#define XML_SOCKLEN_T unsigned int
 #endif
 
 /**
@@ -158,7 +166,7 @@ int have_ipv6(void) {
 
 /**
  * xmlFTPErrMemory:
- * @extra:  extra information
+ * @extra:  extra informations
  *
  * Handle an out of memory condition
  */
@@ -172,7 +180,7 @@ xmlFTPErrMemory(const char *extra)
  * xmlNanoFTPInit:
  *
  * Initialize the FTP protocol layer.
- * Currently it just checks for proxy information,
+ * Currently it just checks for proxy informations,
  * and get the hostname
  */
 
@@ -218,7 +226,7 @@ xmlNanoFTPInit(void) {
 /**
  * xmlNanoFTPCleanup:
  *
- * Cleanup the FTP protocol layer. This cleanup proxy information.
+ * Cleanup the FTP protocol layer. This cleanup proxy informations.
  */
 
 void
@@ -250,7 +258,7 @@ xmlNanoFTPCleanup(void) {
  * @passwd:  the proxy password
  * @type:  the type of proxy 1 for using SITE, 2 for USER a@b
  *
- * Setup the FTP proxy information.
+ * Setup the FTP proxy informations.
  * This can also be done by using ftp_proxy ftp_proxy_user and
  * ftp_proxy_password environment variables.
  */
@@ -412,7 +420,7 @@ xmlNanoFTPUpdateURL(void *ctx, const char *URL) {
  * (Re)Initialize the FTP Proxy context by parsing the URL and finding
  * the protocol host port it indicates.
  * Should be like ftp://myproxy/ or ftp://myproxy:3128/
- * A NULL URL cleans up proxy information.
+ * A NULL URL cleans up proxy informations.
  */
 
 void
@@ -503,8 +511,6 @@ xmlNanoFTPFreeCtxt(void * ctx) {
     if (ctxt->hostname != NULL) xmlFree(ctxt->hostname);
     if (ctxt->protocol != NULL) xmlFree(ctxt->protocol);
     if (ctxt->path != NULL) xmlFree(ctxt->path);
-    if (ctxt->user != NULL) xmlFree(ctxt->user);
-    if (ctxt->passwd != NULL) xmlFree(ctxt->passwd);
     ctxt->passive = 1;
     if (ctxt->controlFd != INVALID_SOCKET) closesocket(ctxt->controlFd);
     ctxt->controlFd = INVALID_SOCKET;
@@ -769,7 +775,7 @@ xmlNanoFTPSendUser(void *ctx) {
 #ifdef DEBUG_FTP
     xmlGenericError(xmlGenericErrorContext, "%s", buf);
 #endif
-    res = send(ctxt->controlFd, SEND_ARG2_CAST buf, len, 0);
+    res = send(ctxt->controlFd, buf, len, 0);
     if (res < 0) {
 	__xmlIOErr(XML_FROM_FTP, 0, "send failed");
 	return(res);
@@ -797,7 +803,7 @@ xmlNanoFTPSendPasswd(void *ctx) {
 #ifdef DEBUG_FTP
     xmlGenericError(xmlGenericErrorContext, "%s", buf);
 #endif
-    res = send(ctxt->controlFd, SEND_ARG2_CAST buf, len, 0);
+    res = send(ctxt->controlFd, buf, len, 0);
     if (res < 0) {
 	__xmlIOErr(XML_FROM_FTP, 0, "send failed");
 	return(res);
@@ -828,7 +834,7 @@ xmlNanoFTPQuit(void *ctx) {
 #ifdef DEBUG_FTP
     xmlGenericError(xmlGenericErrorContext, "%s", buf); /* Just to be consistent, even though we know it can't have a % in it */
 #endif
-    res = send(ctxt->controlFd, SEND_ARG2_CAST buf, len, 0);
+    res = send(ctxt->controlFd, buf, len, 0);
     if (res < 0) {
 	__xmlIOErr(XML_FROM_FTP, 0, "send failed");
 	return(res);
@@ -901,9 +907,7 @@ xmlNanoFTPConnect(void *ctx) {
 	    __xmlIOErr(XML_FROM_FTP, 0, "getaddrinfo failed");
 	    return (-1);
 	}
-	if ((size_t)tmp->ai_addrlen > sizeof(ctxt->ftpAddr)) {
-	    if (result)
-		freeaddrinfo (result);
+	if (tmp->ai_addrlen > sizeof(ctxt->ftpAddr)) {
 	    __xmlIOErr(XML_FROM_FTP, 0, "gethostbyname address mismatch");
 	    return (-1);
 	}
@@ -924,9 +928,9 @@ xmlNanoFTPConnect(void *ctx) {
 #endif
     {
 	if (proxy)
-	    hp = gethostbyname (GETHOSTBYNAME_ARG_CAST proxy);
+	    hp = gethostbyname (proxy);
 	else
-	    hp = gethostbyname (GETHOSTBYNAME_ARG_CAST ctxt->hostname);
+	    hp = gethostbyname (ctxt->hostname);
 	if (hp == NULL) {
 	    __xmlIOErr(XML_FROM_FTP, 0, "gethostbyname failed");
 	    return (-1);
@@ -1024,7 +1028,7 @@ xmlNanoFTPConnect(void *ctx) {
 #ifdef DEBUG_FTP
 	    xmlGenericError(xmlGenericErrorContext, "%s", buf);
 #endif
-	    res = send(ctxt->controlFd, SEND_ARG2_CAST buf, len, 0);
+	    res = send(ctxt->controlFd, buf, len, 0);
 	    if (res < 0) {
 		__xmlIOErr(XML_FROM_FTP, 0, "send failed");
 		closesocket(ctxt->controlFd);
@@ -1036,7 +1040,6 @@ xmlNanoFTPConnect(void *ctx) {
 		case 2:
 		    if (proxyPasswd == NULL)
 			break;
-                    /* Falls through. */
 		case 3:
 		    if (proxyPasswd != NULL)
 			snprintf(buf, sizeof(buf), "PASS %s\r\n", proxyPasswd);
@@ -1047,7 +1050,7 @@ xmlNanoFTPConnect(void *ctx) {
 #ifdef DEBUG_FTP
 		    xmlGenericError(xmlGenericErrorContext, "%s", buf);
 #endif
-		    res = send(ctxt->controlFd, SEND_ARG2_CAST buf, len, 0);
+		    res = send(ctxt->controlFd, buf, len, 0);
 		    if (res < 0) {
 			__xmlIOErr(XML_FROM_FTP, 0, "send failed");
 			closesocket(ctxt->controlFd);
@@ -1088,7 +1091,7 @@ xmlNanoFTPConnect(void *ctx) {
 #ifdef DEBUG_FTP
 		xmlGenericError(xmlGenericErrorContext, "%s", buf);
 #endif
-		res = send(ctxt->controlFd, SEND_ARG2_CAST buf, len, 0);
+		res = send(ctxt->controlFd, buf, len, 0);
 		if (res < 0) {
 		    __xmlIOErr(XML_FROM_FTP, 0, "send failed");
 		    closesocket(ctxt->controlFd); ctxt->controlFd = INVALID_SOCKET;
@@ -1106,7 +1109,6 @@ xmlNanoFTPConnect(void *ctx) {
 		    ctxt->controlFd = INVALID_SOCKET;
 		    return(-1);
 		}
-                /* Falls through. */
 	    case 2:
 		/* USER user@host command */
 		if (ctxt->user == NULL)
@@ -1120,7 +1122,7 @@ xmlNanoFTPConnect(void *ctx) {
 #ifdef DEBUG_FTP
 		xmlGenericError(xmlGenericErrorContext, "%s", buf);
 #endif
-		res = send(ctxt->controlFd, SEND_ARG2_CAST buf, len, 0);
+		res = send(ctxt->controlFd, buf, len, 0);
 		if (res < 0) {
 		    __xmlIOErr(XML_FROM_FTP, 0, "send failed");
 		    closesocket(ctxt->controlFd); ctxt->controlFd = INVALID_SOCKET;
@@ -1142,7 +1144,7 @@ xmlNanoFTPConnect(void *ctx) {
 #ifdef DEBUG_FTP
 		xmlGenericError(xmlGenericErrorContext, "%s", buf);
 #endif
-		res = send(ctxt->controlFd, SEND_ARG2_CAST buf, len, 0);
+		res = send(ctxt->controlFd, buf, len, 0);
 		if (res < 0) {
 		    __xmlIOErr(XML_FROM_FTP, 0, "send failed");
 		    closesocket(ctxt->controlFd); ctxt->controlFd = INVALID_SOCKET;
@@ -1160,7 +1162,6 @@ xmlNanoFTPConnect(void *ctx) {
 		    ctxt->controlFd = INVALID_SOCKET;
 		    return(-1);
 		}
-                /* Falls through. */
 	    case 3:
 		/*
 		 * If you need support for other Proxy authentication scheme
@@ -1209,7 +1210,6 @@ xmlNanoFTPConnect(void *ctx) {
 	case 3:
 	    __xmlIOErr(XML_FROM_FTP, XML_FTP_ACCNT,
 		       "FTP server asking for ACCNT on anonymous\n");
-           /* Falls through. */
 	case 1:
 	case 4:
 	case 5:
@@ -1244,14 +1244,9 @@ xmlNanoFTPConnectTo(const char *server, int port) {
     if (port <= 0)
 	return(NULL);
     ctxt = (xmlNanoFTPCtxtPtr) xmlNanoFTPNewCtxt(NULL);
-    if (ctxt == NULL)
-        return(NULL);
     ctxt->hostname = xmlMemStrdup(server);
-    if (ctxt->hostname == NULL) {
-	xmlNanoFTPFreeCtxt(ctxt);
-	return(NULL);
-    }
-    ctxt->port = port;
+    if (port != 0)
+	ctxt->port = port;
     res = xmlNanoFTPConnect(ctxt);
     if (res < 0) {
 	xmlNanoFTPFreeCtxt(ctxt);
@@ -1267,7 +1262,7 @@ xmlNanoFTPConnectTo(const char *server, int port) {
  *
  * Tries to change the remote directory
  *
- * Returns -1 in case of error, 1 if CWD worked, 0 if it failed
+ * Returns -1 incase of error, 1 if CWD worked, 0 if it failed
  */
 
 int
@@ -1293,7 +1288,7 @@ xmlNanoFTPCwd(void *ctx, const char *directory) {
 #ifdef DEBUG_FTP
     xmlGenericError(xmlGenericErrorContext, "%s", buf);
 #endif
-    res = send(ctxt->controlFd, SEND_ARG2_CAST buf, len, 0);
+    res = send(ctxt->controlFd, buf, len, 0);
     if (res < 0) {
 	__xmlIOErr(XML_FROM_FTP, 0, "send failed");
 	return(res);
@@ -1316,7 +1311,7 @@ xmlNanoFTPCwd(void *ctx, const char *directory) {
  *
  * Tries to delete an item (file or directory) from server
  *
- * Returns -1 in case of error, 1 if DELE worked, 0 if it failed
+ * Returns -1 incase of error, 1 if DELE worked, 0 if it failed
  */
 
 int
@@ -1326,8 +1321,8 @@ xmlNanoFTPDele(void *ctx, const char *file) {
     int len;
     int res;
 
-    if ((ctxt == NULL) || (ctxt->controlFd == INVALID_SOCKET) ||
-        (file == NULL)) return(-1);
+    if ((ctxt == NULL) || (ctxt->controlFd == INVALID_SOCKET) || (file == NULL)) return(-1);
+    if (file == NULL) return (0);
 
     /*
      * Expected response code for DELE:
@@ -1344,7 +1339,7 @@ xmlNanoFTPDele(void *ctx, const char *file) {
 #ifdef DEBUG_FTP
     xmlGenericError(xmlGenericErrorContext, "%s", buf);
 #endif
-    res = send(ctxt->controlFd, SEND_ARG2_CAST buf, len, 0);
+    res = send(ctxt->controlFd, buf, len, 0);
     if (res < 0) {
 	__xmlIOErr(XML_FROM_FTP, 0, "send failed");
 	return(res);
@@ -1366,7 +1361,7 @@ xmlNanoFTPDele(void *ctx, const char *file) {
  * Try to open a data connection to the server. Currently only
  * passive mode is supported.
  *
- * Returns -1 in case of error, 0 otherwise
+ * Returns -1 incase of error, 0 otherwise
  */
 
 SOCKET
@@ -1416,7 +1411,7 @@ xmlNanoFTPGetConnection(void *ctx) {
 #ifdef DEBUG_FTP
 	xmlGenericError(xmlGenericErrorContext, "%s", buf);
 #endif
-	res = send(ctxt->controlFd, SEND_ARG2_CAST buf, len, 0);
+	res = send(ctxt->controlFd, buf, len, 0);
 	if (res < 0) {
 	    __xmlIOErr(XML_FROM_FTP, 0, "send failed");
 	    closesocket(ctxt->dataFd); ctxt->dataFd = INVALID_SOCKET;
@@ -1517,7 +1512,7 @@ xmlNanoFTPGetConnection(void *ctx) {
 	xmlGenericError(xmlGenericErrorContext, "%s", buf);
 #endif
 
-	res = send(ctxt->controlFd, SEND_ARG2_CAST buf, len, 0);
+	res = send(ctxt->controlFd, buf, len, 0);
 	if (res < 0) {
 	    __xmlIOErr(XML_FROM_FTP, 0, "send failed");
 	    closesocket(ctxt->dataFd); ctxt->dataFd = INVALID_SOCKET;
@@ -1539,7 +1534,7 @@ xmlNanoFTPGetConnection(void *ctx) {
  *
  * Close the data connection from the server
  *
- * Returns -1 in case of error, 0 otherwise
+ * Returns -1 incase of error, 0 otherwise
  */
 
 int
@@ -1590,7 +1585,7 @@ xmlNanoFTPCloseConnection(void *ctx) {
  *
  * Parse at most one entry from the listing.
  *
- * Returns -1 in case of error, the length of data parsed otherwise
+ * Returns -1 incase of error, the length of data parsed otherwise
  */
 
 static int
@@ -1718,7 +1713,7 @@ xmlNanoFTPParseList(const char *list, ftpListCallback callback, void *userData) 
  * Do a listing on the server. All files info are passed back
  * in the callbacks.
  *
- * Returns -1 in case of error, 0 otherwise
+ * Returns -1 incase of error, 0 otherwise
  */
 
 int
@@ -1754,7 +1749,7 @@ xmlNanoFTPList(void *ctx, ftpListCallback callback, void *userData,
 #ifdef DEBUG_FTP
     xmlGenericError(xmlGenericErrorContext, "%s", buf);
 #endif
-    res = send(ctxt->controlFd, SEND_ARG2_CAST buf, len, 0);
+    res = send(ctxt->controlFd, buf, len, 0);
     if (res < 0) {
 	__xmlIOErr(XML_FROM_FTP, 0, "send failed");
 	closesocket(ctxt->dataFd); ctxt->dataFd = INVALID_SOCKET;
@@ -1849,7 +1844,7 @@ xmlNanoFTPGetSocket(void *ctx, const char *filename) {
 #ifdef DEBUG_FTP
     xmlGenericError(xmlGenericErrorContext, "%s", buf);
 #endif
-    res = send(ctxt->controlFd, SEND_ARG2_CAST buf, len, 0);
+    res = send(ctxt->controlFd, buf, len, 0);
     if (res < 0) {
 	__xmlIOErr(XML_FROM_FTP, 0, "send failed");
 	closesocket(ctxt->dataFd); ctxt->dataFd = INVALID_SOCKET;
@@ -1869,7 +1864,7 @@ xmlNanoFTPGetSocket(void *ctx, const char *filename) {
 #ifdef DEBUG_FTP
     xmlGenericError(xmlGenericErrorContext, "%s", buf);
 #endif
-    res = send(ctxt->controlFd, SEND_ARG2_CAST buf, len, 0);
+    res = send(ctxt->controlFd, buf, len, 0);
     if (res < 0) {
 	__xmlIOErr(XML_FROM_FTP, 0, "send failed");
 	closesocket(ctxt->dataFd); ctxt->dataFd = INVALID_SOCKET;
@@ -1893,7 +1888,7 @@ xmlNanoFTPGetSocket(void *ctx, const char *filename) {
  * Fetch the given file from the server. All data are passed back
  * in the callbacks. The last callback has a size of 0 block.
  *
- * Returns -1 in case of error, 0 otherwise
+ * Returns -1 incase of error, 0 otherwise
  */
 
 int
@@ -2023,7 +2018,7 @@ xmlNanoFTPOpen(const char *URL) {
  *
  * Close the connection and both control and transport
  *
- * Returns -1 in case of error, 0 otherwise
+ * Returns -1 incase of error, 0 otherwise
  */
 
 int

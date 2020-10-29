@@ -44,10 +44,10 @@ struct _xmlDebugCtxt {
     int depth;                  /* current depth */
     xmlDocPtr doc;              /* current document */
     xmlNodePtr node;		/* current node */
-    xmlDictPtr dict;		/* the doc dictionary */
+    xmlDictPtr dict;		/* the doc dictionnary */
     int check;                  /* do just checkings */
     int errors;                 /* number of errors found */
-    int nodict;			/* if the document has no dictionary */
+    int nodict;			/* if the document has no dictionnary */
     int options;		/* options */
 };
 
@@ -164,7 +164,7 @@ xmlDebugErr(xmlDebugCtxtPtr ctxt, int error, const char *msg)
 		    NULL, NULL, NULL, 0, 0,
 		    "%s", msg);
 }
-static void LIBXML_ATTR_FORMAT(3,0)
+static void
 xmlDebugErr2(xmlDebugCtxtPtr ctxt, int error, const char *msg, int extra)
 {
     ctxt->errors++;
@@ -174,7 +174,7 @@ xmlDebugErr2(xmlDebugCtxtPtr ctxt, int error, const char *msg, int extra)
 		    NULL, NULL, NULL, 0, 0,
 		    msg, extra);
 }
-static void LIBXML_ATTR_FORMAT(3,0)
+static void
 xmlDebugErr3(xmlDebugCtxtPtr ctxt, int error, const char *msg, const char *extra)
 {
     ctxt->errors++;
@@ -243,7 +243,7 @@ xmlCtxtCheckString(xmlDebugCtxtPtr ctxt, const xmlChar * str)
  * @ctxt: the debug context
  * @name: the name
  *
- * Do debugging on the name, for example the dictionary status and
+ * Do debugging on the name, for example the dictionnary status and
  * conformance to the Name production.
  */
 static void
@@ -254,18 +254,16 @@ xmlCtxtCheckName(xmlDebugCtxtPtr ctxt, const xmlChar * name)
 	    xmlDebugErr(ctxt, XML_CHECK_NO_NAME, "Name is NULL");
 	    return;
 	}
-#if defined(LIBXML_TREE_ENABLED) || defined(LIBXML_SCHEMAS_ENABLED)
         if (xmlValidateName(name, 0)) {
 	    xmlDebugErr3(ctxt, XML_CHECK_NOT_NCNAME,
 			 "Name is not an NCName '%s'", (const char *) name);
 	}
-#endif
 	if ((ctxt->dict != NULL) &&
 	    (!xmlDictOwns(ctxt->dict, name)) &&
             ((ctxt->doc == NULL) ||
              ((ctxt->doc->parseFlags & (XML_PARSE_SAX1 | XML_PARSE_NODICT)) == 0))) {
 	    xmlDebugErr3(ctxt, XML_CHECK_OUTSIDE_DICT,
-			 "Name is not from the document dictionary '%s'",
+			 "Name is not from the document dictionnary '%s'",
 			 (const char *) name);
 	}
     }
@@ -289,10 +287,10 @@ xmlCtxtGenericNodeCheck(xmlDebugCtxtPtr ctxt, xmlNodePtr node) {
 	dict = doc->dict;
 	if ((dict == NULL) && (ctxt->nodict == 0)) {
 #if 0
-            /* deactivated right now as it raises too many errors */
+            /* desactivated right now as it raises too many errors */
 	    if (doc->type == XML_DOCUMENT_NODE)
 		xmlDebugErr(ctxt, XML_CHECK_NO_DICT,
-			    "Document has no dictionary\n");
+			    "Document has no dictionnary\n");
 #endif
 	    ctxt->nodict = 1;
 	}
@@ -1168,7 +1166,7 @@ xmlCtxtDumpDocHead(xmlDebugCtxtPtr ctxt, xmlDocPtr doc)
  * @output:  the FILE * for the output
  * @doc:  the document
  *
- * Dumps debug information concerning the document, not recursive
+ * Dumps debug information cncerning the document, not recursive
  */
 static void
 xmlCtxtDumpDocumentHead(xmlDebugCtxtPtr ctxt, xmlDocPtr doc)
@@ -1229,11 +1227,8 @@ xmlCtxtDumpDocument(xmlDebugCtxtPtr ctxt, xmlDocPtr doc)
 }
 
 static void
-xmlCtxtDumpEntityCallback(void *payload, void *data,
-                          const xmlChar *name ATTRIBUTE_UNUSED)
+xmlCtxtDumpEntityCallback(xmlEntityPtr cur, xmlDebugCtxtPtr ctxt)
 {
-    xmlEntityPtr cur = (xmlEntityPtr) payload;
-    xmlDebugCtxtPtr ctxt = (xmlDebugCtxtPtr) data;
     if (cur == NULL) {
         if (!ctxt->check)
             fprintf(ctxt->output, "Entity is NULL");
@@ -1292,7 +1287,8 @@ xmlCtxtDumpEntities(xmlDebugCtxtPtr ctxt, xmlDocPtr doc)
 
         if (!ctxt->check)
             fprintf(ctxt->output, "Entities in internal subset\n");
-        xmlHashScan(table, xmlCtxtDumpEntityCallback, ctxt);
+        xmlHashScan(table, (xmlHashScanner) xmlCtxtDumpEntityCallback,
+                    ctxt);
     } else
         fprintf(ctxt->output, "No entities in internal subset\n");
     if ((doc->extSubset != NULL) && (doc->extSubset->entities != NULL)) {
@@ -1301,7 +1297,8 @@ xmlCtxtDumpEntities(xmlDebugCtxtPtr ctxt, xmlDocPtr doc)
 
         if (!ctxt->check)
             fprintf(ctxt->output, "Entities in external subset\n");
-        xmlHashScan(table, xmlCtxtDumpEntityCallback, ctxt);
+        xmlHashScan(table, (xmlHashScanner) xmlCtxtDumpEntityCallback,
+                    ctxt);
     } else if (!ctxt->check)
         fprintf(ctxt->output, "No entities in external subset\n");
 }
@@ -1342,7 +1339,7 @@ xmlCtxtDumpDTD(xmlDebugCtxtPtr ctxt, xmlDtdPtr dtd)
  * @output:  the FILE * for the output
  * @str:  the string
  *
- * Dumps information about the string, shorten it if necessary
+ * Dumps informations about the string, shorten it if necessary
  */
 void
 xmlDebugDumpString(FILE * output, const xmlChar * str)
@@ -1498,7 +1495,7 @@ xmlDebugDumpNodeList(FILE * output, xmlNodePtr node, int depth)
  * @output:  the FILE * for the output
  * @doc:  the document
  *
- * Dumps debug information concerning the document, not recursive
+ * Dumps debug information cncerning the document, not recursive
  */
 void
 xmlDebugDumpDocumentHead(FILE * output, xmlDocPtr doc)
@@ -2190,7 +2187,7 @@ xmlShellRegisterRootNamespaces(xmlShellCtxtPtr ctxt, char *arg ATTRIBUTE_UNUSED,
  * @node2:  unused
  *
  * Implements the XML shell function "grep"
- * dumps information about the node (namespace, attributes, content).
+ * dumps informations about the node (namespace, attributes, content).
  *
  * Returns 0
  */
@@ -2268,7 +2265,7 @@ xmlShellGrep(xmlShellCtxtPtr ctxt ATTRIBUTE_UNUSED,
  * @node2:  unused
  *
  * Implements the XML shell function "dir"
- * dumps information about the node (namespace, attributes, content).
+ * dumps informations about the node (namespace, attributes, content).
  *
  * Returns 0
  */
@@ -2302,7 +2299,7 @@ xmlShellDir(xmlShellCtxtPtr ctxt ATTRIBUTE_UNUSED,
  * @node2:  unused
  *
  * Implements the XML shell function "dir"
- * dumps information about the node (namespace, attributes, content).
+ * dumps informations about the node (namespace, attributes, content).
  *
  * Returns 0
  */
@@ -2363,7 +2360,10 @@ xmlShellRNGValidate(xmlShellCtxtPtr sctxt, char *schemas,
     int ret;
 
     ctxt = xmlRelaxNGNewParserCtxt(schemas);
-    xmlRelaxNGSetParserErrors(ctxt, xmlGenericError, xmlGenericError, NULL);
+    xmlRelaxNGSetParserErrors(ctxt,
+	    (xmlRelaxNGValidityErrorFunc) fprintf,
+	    (xmlRelaxNGValidityWarningFunc) fprintf,
+	    stderr);
     relaxngschemas = xmlRelaxNGParse(ctxt);
     xmlRelaxNGFreeParserCtxt(ctxt);
     if (relaxngschemas == NULL) {
@@ -2372,7 +2372,10 @@ xmlShellRNGValidate(xmlShellCtxtPtr sctxt, char *schemas,
 	return(-1);
     }
     vctxt = xmlRelaxNGNewValidCtxt(relaxngschemas);
-    xmlRelaxNGSetValidErrors(vctxt, xmlGenericError, xmlGenericError, NULL);
+    xmlRelaxNGSetValidErrors(vctxt,
+	    (xmlRelaxNGValidityErrorFunc) fprintf,
+	    (xmlRelaxNGValidityWarningFunc) fprintf,
+	    stderr);
     ret = xmlRelaxNGValidateDoc(vctxt, sctxt->doc);
     if (ret == 0) {
 	fprintf(stderr, "%s validates\n", sctxt->filename);
@@ -2641,9 +2644,9 @@ xmlShellValidate(xmlShellCtxtPtr ctxt, char *dtd,
     int res = -1;
 
     if ((ctxt == NULL) || (ctxt->doc == NULL)) return(-1);
-    vctxt.userData = NULL;
-    vctxt.error = xmlGenericError;
-    vctxt.warning = xmlGenericError;
+    vctxt.userData = stderr;
+    vctxt.error = (xmlValidityErrorFunc) fprintf;
+    vctxt.warning = (xmlValidityWarningFunc) fprintf;
 
     if ((dtd == NULL) || (dtd[0] == 0)) {
         res = xmlValidateDocument(&vctxt, ctxt->doc);
@@ -2900,7 +2903,7 @@ xmlShell(xmlDocPtr doc, char *filename, xmlShellReadlineFunc input,
 		  fprintf(ctxt->output, "\tbye          leave shell\n");
 		  fprintf(ctxt->output, "\tcat [node]   display node or current node\n");
 		  fprintf(ctxt->output, "\tcd [path]    change directory to path or to root\n");
-		  fprintf(ctxt->output, "\tdir [path]   dumps information about the node (namespace, attributes, content)\n");
+		  fprintf(ctxt->output, "\tdir [path]   dumps informations about the node (namespace, attributes, content)\n");
 		  fprintf(ctxt->output, "\tdu [path]    show the structure of the subtree under path or the current node\n");
 		  fprintf(ctxt->output, "\texit         leave shell\n");
 		  fprintf(ctxt->output, "\thelp         display this help\n");
@@ -2926,7 +2929,7 @@ xmlShell(xmlDocPtr doc, char *filename, xmlShellReadlineFunc input,
 		  fprintf(ctxt->output, "\tvalidate     check the document for errors\n");
 #endif /* LIBXML_VALID_ENABLED */
 #ifdef LIBXML_SCHEMAS_ENABLED
-		  fprintf(ctxt->output, "\trelaxng rng  validate the document against the Relax-NG schemas\n");
+		  fprintf(ctxt->output, "\trelaxng rng  validate the document agaisnt the Relax-NG schemas\n");
 #endif
 		  fprintf(ctxt->output, "\tgrep string  search for a string in the subtree\n");
 #ifdef LIBXML_VALID_ENABLED
@@ -2943,7 +2946,7 @@ xmlShell(xmlDocPtr doc, char *filename, xmlShellReadlineFunc input,
         } else if (!strcmp(command, "save")) {
             xmlShellSave(ctxt, arg, NULL, NULL);
         } else if (!strcmp(command, "write")) {
-	    if (arg[0] == 0)
+	    if ((arg == NULL) || (arg[0] == 0))
 		xmlGenericError(xmlGenericErrorContext,
                         "Write command requires a filename argument\n");
 	    else
@@ -3238,12 +3241,7 @@ xmlShell(xmlDocPtr doc, char *filename, xmlShellReadlineFunc input,
                 ctxt->node = (xmlNodePtr) ctxt->doc;
             } else {
 #ifdef LIBXML_XPATH_ENABLED
-                int l;
-
                 ctxt->pctxt->node = ctxt->node;
-		l = strlen(arg);
-		if ((l >= 2) && (arg[l - 1] == '/'))
-		    arg[l - 1] = 0;
                 list = xmlXPathEval((xmlChar *) arg, ctxt->pctxt);
 #else
                 list = NULL;

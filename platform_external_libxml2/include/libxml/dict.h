@@ -1,5 +1,5 @@
 /*
- * Summary: string dictionary
+ * Summary: string dictionnary
  * Description: dictionary of reusable strings, just used to avoid allocation
  *         and freeing operations.
  *
@@ -11,15 +11,16 @@
 #ifndef __XML_DICT_H__
 #define __XML_DICT_H__
 
-#include <stddef.h>
+#include <limits.h>
 #include <libxml/xmlversion.h>
+#include <libxml/tree.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /*
- * The dictionary.
+ * The dictionnary.
  */
 typedef struct _xmlDict xmlDict;
 typedef xmlDict *xmlDictPtr;
@@ -47,7 +48,7 @@ XMLPUBFUN void XMLCALL
 			xmlDictFree	(xmlDictPtr dict);
 
 /*
- * Lookup of entry in the dictionary.
+ * Lookup of entry in the dictionnary.
  */
 XMLPUBFUN const xmlChar * XMLCALL
 			xmlDictLookup	(xmlDictPtr dict,

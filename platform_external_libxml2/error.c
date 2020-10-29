@@ -18,7 +18,7 @@
 
 void XMLCDECL xmlGenericErrorDefaultFunc	(void *ctx ATTRIBUTE_UNUSED,
 				 const char *msg,
-				 ...) LIBXML_ATTR_FORMAT(2,3);
+				 ...);
 
 #define XML_GET_VAR_STR(msg, str) {				\
     int       size, prev_size = -1;				\
@@ -146,7 +146,7 @@ xmlSetStructuredErrorFunc(void *ctx, xmlStructuredErrorFunc handler) {
  * xmlParserPrintFileInfo:
  * @input:  an xmlParserInputPtr input
  *
- * Displays the associated file and line information for the current input
+ * Displays the associated file and line informations for the current input
  */
 
 void
@@ -177,9 +177,7 @@ xmlParserPrintFileContextInternal(xmlParserInputPtr input ,
     xmlChar  content[81]; /* space for 80 chars + line terminator */
     xmlChar *ctnt;
 
-    if ((input == NULL) || (input->cur == NULL))
-        return;
-
+    if (input == NULL) return;
     cur = input->cur;
     base = input->base;
     /* skip backwards over any end-of-lines */
@@ -238,7 +236,7 @@ xmlParserPrintFileContext(xmlParserInputPtr input) {
  * @ctx: the parser context or NULL
  * @str: the formatted error message
  *
- * Report an error with its context, replace the 4 old error/warning
+ * Report an erro with its context, replace the 4 old error/warning
  * routines.
  */
 static void
@@ -557,7 +555,6 @@ __xmlRaiseError(xmlStructuredErrorFunc schannel,
 	 * of the usual "base" (doc->URL) for the node (bug 152623).
 	 */
         xmlNodePtr prev = baseptr;
-        char *href = NULL;
 	int inclcount = 0;
 	while (prev != NULL) {
 	    if (prev->prev == NULL)
@@ -565,20 +562,21 @@ __xmlRaiseError(xmlStructuredErrorFunc schannel,
 	    else {
 	        prev = prev->prev;
 		if (prev->type == XML_XINCLUDE_START) {
-		    if (inclcount > 0) {
-                        --inclcount;
-                    } else {
-                        href = (char *) xmlGetProp(prev, BAD_CAST "href");
-                        if (href != NULL)
-		            break;
-                    }
+		    if (--inclcount < 0)
+		        break;
 		} else if (prev->type == XML_XINCLUDE_END)
 		    inclcount++;
 	    }
 	}
-        if (href != NULL)
-            to->file = href;
-	else
+	if (prev != NULL) {
+	    if (prev->type == XML_XINCLUDE_START) {
+		prev->type = XML_ELEMENT_NODE;
+		to->file = (char *) xmlGetProp(prev, BAD_CAST "href");
+		prev->type = XML_XINCLUDE_START;
+	    } else {
+		to->file = (char *) xmlGetProp(prev, BAD_CAST "href");
+	    }
+	} else
 #endif
 	    to->file = (char *) xmlStrdup(baseptr->doc->URL);
 	if ((to->file == NULL) && (node != NULL) && (node->doc != NULL)) {
@@ -631,7 +629,7 @@ __xmlRaiseError(xmlStructuredErrorFunc schannel,
 	(channel == xmlParserValidityError) ||
 	(channel == xmlParserValidityWarning))
 	xmlReportError(to, ctxt, str, NULL, NULL);
-    else if (((void(*)(void)) channel == (void(*)(void)) fprintf) ||
+    else if ((channel == (xmlGenericErrorFunc) fprintf) ||
              (channel == xmlGenericErrorDefaultFunc))
 	xmlReportError(to, ctxt, str, channel, data);
     else
@@ -643,7 +641,7 @@ __xmlRaiseError(xmlStructuredErrorFunc schannel,
  * @domain: where the error comes from
  * @code: the error code
  * @node: the context node
- * @extra:  extra information
+ * @extra:  extra informations
  *
  * Handle an out of memory condition
  */
@@ -853,7 +851,7 @@ xmlParserValidityWarning(void *ctx, const char *msg, ...)
  * Get the last global error registered. This is per thread if compiled
  * with thread support.
  *
- * Returns NULL if no error occurred or a pointer to the error
+ * Returns NULL if no error occured or a pointer to the error
  */
 xmlErrorPtr
 xmlGetLastError(void)
@@ -910,7 +908,7 @@ xmlResetLastError(void)
  *
  * Get the last parsing error registered.
  *
- * Returns NULL if no error occurred or a pointer to the error
+ * Returns NULL if no error occured or a pointer to the error
  */
 xmlErrorPtr
 xmlCtxtGetLastError(void *ctx)

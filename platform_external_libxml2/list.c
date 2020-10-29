@@ -9,7 +9,7 @@
  *
  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE AUTHORS AND
+ * MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE AUTHORS AND
  * CONTRIBUTORS ACCEPT NO RESPONSIBILITY IN ANY CONCEIVABLE MANNER.
  *
  * Author: Gary.Pennington@uk.sun.com
@@ -347,7 +347,7 @@ void xmlListDelete(xmlListPtr l)
  *
  * Remove the first instance associated to data in the list
  *
- * Returns 1 if a deallocation occurred, or 0 if not found
+ * Returns 1 if a deallocation occured, or 0 if not found
  */
 int
 xmlListRemoveFirst(xmlListPtr l, void *data)
@@ -372,7 +372,7 @@ xmlListRemoveFirst(xmlListPtr l, void *data)
  *
  * Remove the last instance associated to data in the list
  *
- * Returns 1 if a deallocation occurred, or 0 if not found
+ * Returns 1 if a deallocation occured, or 0 if not found
  */
 int
 xmlListRemoveLast(xmlListPtr l, void *data)
@@ -673,7 +673,7 @@ xmlListSort(xmlListPtr l)
  * apply the walker function to it
  */
 void
-xmlListWalk(xmlListPtr l, xmlListWalker walker, void *user) {
+xmlListWalk(xmlListPtr l, xmlListWalker walker, const void *user) {
     xmlLinkPtr lk;
 
     if ((l == NULL) || (walker == NULL))
@@ -694,7 +694,7 @@ xmlListWalk(xmlListPtr l, xmlListWalker walker, void *user) {
  * apply the walker function to it
  */
 void
-xmlListReverseWalk(xmlListPtr l, xmlListWalker walker, void *user) {
+xmlListReverseWalk(xmlListPtr l, xmlListWalker walker, const void *user) {
     xmlLinkPtr lk;
 
     if ((l == NULL) || (walker == NULL))

@@ -92,7 +92,7 @@ xmlStrdupFunc xmlMemStrdup = (xmlStrdupFunc) xmlMemoryStrdup;
  *
  * The variable holding the libxml free() implementation
  */
-xmlFreeFunc xmlFree = free;
+xmlFreeFunc xmlFree = (xmlFreeFunc) free;
 /**
  * xmlMalloc:
  * @size:  the size requested in bytes
@@ -101,18 +101,18 @@ xmlFreeFunc xmlFree = free;
  *
  * Returns a pointer to the newly allocated block or NULL in case of error
  */
-xmlMallocFunc xmlMalloc = malloc;
+xmlMallocFunc xmlMalloc = (xmlMallocFunc) malloc;
 /**
  * xmlMallocAtomic:
  * @size:  the size requested in bytes
  *
  * The variable holding the libxml malloc() implementation for atomic
- * data (i.e. blocks not containing pointers), useful when using a
+ * data (i.e. blocks not containings pointers), useful when using a
  * garbage collecting allocator.
  *
  * Returns a pointer to the newly allocated block or NULL in case of error
  */
-xmlMallocFunc xmlMallocAtomic = malloc;
+xmlMallocFunc xmlMallocAtomic = (xmlMallocFunc) malloc;
 /**
  * xmlRealloc:
  * @mem: an already allocated block of memory
@@ -122,19 +122,7 @@ xmlMallocFunc xmlMallocAtomic = malloc;
  *
  * Returns a pointer to the newly reallocated block or NULL in case of error
  */
-xmlReallocFunc xmlRealloc = realloc;
-/**
- * xmlPosixStrdup
- * @cur:  the input char *
- *
- * a strdup implementation with a type signature matching POSIX
- *
- * Returns a new xmlChar * or NULL
- */
-static char *
-xmlPosixStrdup(const char *cur) {
-    return((char*) xmlCharStrdup(cur));
-}
+xmlReallocFunc xmlRealloc = (xmlReallocFunc) realloc;
 /**
  * xmlMemStrdup:
  * @str: a zero terminated string
@@ -143,7 +131,7 @@ xmlPosixStrdup(const char *cur) {
  *
  * Returns the copy of the string or NULL in case of error
  */
-xmlStrdupFunc xmlMemStrdup = xmlPosixStrdup;
+xmlStrdupFunc xmlMemStrdup = (xmlStrdupFunc) xmlStrdup;
 #endif /* DEBUG_MEMORY_LOCATION || DEBUG_MEMORY */
 
 #include <libxml/threads.h>
@@ -215,7 +203,7 @@ int oldXMLWDcompatibility = 0; /* DEPRECATED */
 /**
  * xmlParserDebugEntities:
  *
- * Global setting, asking the parser to print out debugging information.
+ * Global setting, asking the parser to print out debugging informations.
  * while handling entities.
  * Disabled by default
  */
@@ -260,7 +248,7 @@ static int xmlPedanticParserDefaultValueThrDef = 0;
  * Global setting, indicate that the parser should store the line number
  * in the content field of elements in the DOM tree.
  * Disabled by default since this may not be safe for old classes of
- * application.
+ * applicaton.
  */
 int xmlLineNumbersDefaultValue = 0;
 static int xmlLineNumbersDefaultValueThrDef = 0;
@@ -361,7 +349,7 @@ static const char *xmlTreeIndentStringThrDef = "  ";
  * xmlSaveNoEmptyTags:
  *
  * Global setting, asking the serializer to not output empty tags
- * as <empty/> but <empty></empty>. those two forms are indistinguishable
+ * as <empty/> but <empty></empty>. those two forms are undistinguishable
  * once parsed.
  * Disabled by default
  */

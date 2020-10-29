@@ -8,11 +8,6 @@
  * http://www.fortran-2000.com/ArnaudRecipes/sharedlib.html
  */
 
-/* In order RTLD_GLOBAL and RTLD_NOW to be defined on zOS */
-#if defined(__MVS__)
-#define _UNIX03_SOURCE
-#endif
-
 #define IN_LIBXML
 #include "libxml.h"
 
@@ -67,7 +62,7 @@ xmlModuleErrMemory(xmlModulePtr module, const char *extra)
  *
  * Opens a module/shared library given its name or path
  * NOTE: that due to portability issues, behaviour can only be
- * guaranteed with @name using ASCII. We cannot guarantee that
+ * guaranteed with @name using ASCII. We canot guarantee that
  * an UTF-8 string would work, which is why name is a const char *
  * and not a const xmlChar * .
  * TODO: options are not yet implemented.
@@ -109,7 +104,7 @@ xmlModuleOpen(const char *name, int options ATTRIBUTE_UNUSED)
  *
  * Lookup for a symbol address in the given module
  * NOTE: that due to portability issues, behaviour can only be
- * guaranteed with @name using ASCII. We cannot guarantee that
+ * guaranteed with @name using ASCII. We canot guarantee that
  * an UTF-8 string would work, which is why name is a const char *
  * and not a const xmlChar * .
  *
@@ -120,7 +115,7 @@ xmlModuleSymbol(xmlModulePtr module, const char *name, void **symbol)
 {
     int rc = -1;
 
-    if ((NULL == module) || (symbol == NULL) || (name == NULL)) {
+    if ((NULL == module) || (symbol == NULL)) {
         __xmlRaiseError(NULL, NULL, NULL, NULL, NULL, XML_FROM_MODULE,
                         XML_MODULE_OPEN, XML_ERR_FATAL, NULL, 0, 0,
                         NULL, NULL, 0, 0, "null parameter\n");
@@ -301,9 +296,8 @@ xmlModulePlatformSymbol(void *handle, const char *name, void **symbol)
 #endif /* HAVE_SHLLOAD */
 #endif /* ! HAVE_DLOPEN */
 
-#if defined(_WIN32) && !defined(__CYGWIN__)
+#ifdef _WIN32
 
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 /*
@@ -340,7 +334,6 @@ xmlModulePlatformClose(void *handle)
 static int
 xmlModulePlatformSymbol(void *handle, const char *name, void **symbol)
 {
-XML_IGNORE_PEDANTIC_WARNINGS
 #ifdef _WIN32_WCE
     /*
      * GetProcAddressA seems only available on WinCE
@@ -350,7 +343,6 @@ XML_IGNORE_PEDANTIC_WARNINGS
     *symbol = GetProcAddress(handle, name);
 #endif
     return (NULL == *symbol) ? -1 : 0;
-XML_POP_WARNINGS
 }
 
 #endif /* _WIN32 */

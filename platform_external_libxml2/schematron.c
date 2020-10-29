@@ -133,7 +133,7 @@ struct _xmlSchematron {
     int flags;			/* specific to this schematron */
 
     void *_private;		/* unused by the library */
-    xmlDictPtr dict;		/* the dictionary used internally */
+    xmlDictPtr dict;		/* the dictionnary used internally */
 
     const xmlChar *title;	/* the title if any */
 
@@ -165,10 +165,8 @@ struct _xmlSchematronValidCtxt {
 
     FILE *outputFile;		/* if using XML_SCHEMATRON_OUT_FILE */
     xmlBufferPtr outputBuffer;	/* if using XML_SCHEMATRON_OUT_BUFFER */
-#ifdef LIBXML_OUTPUT_ENABLED
     xmlOutputWriteCallback iowrite; /* if using XML_SCHEMATRON_OUT_IO */
     xmlOutputCloseCallback  ioclose;
-#endif
     void *ioctx;
 
     /* error reporting data */
@@ -186,7 +184,7 @@ struct _xmlSchematronParserCtxt {
     const char *buffer;
     int size;
 
-    xmlDictPtr dict;            /* dictionary for interned string names */
+    xmlDictPtr dict;            /* dictionnary for interned string names */
 
     int nberrors;
     int err;
@@ -220,7 +218,7 @@ struct _xmlSchematronParserCtxt {
 /**
  * xmlSchematronPErrMemory:
  * @node: a context node
- * @extra:  extra information
+ * @extra:  extra informations
  *
  * Handle an out of memory condition
  */
@@ -245,7 +243,7 @@ xmlSchematronPErrMemory(xmlSchematronParserCtxtPtr ctxt,
  *
  * Handle a parser error
  */
-static void LIBXML_ATTR_FORMAT(4,0)
+static void
 xmlSchematronPErr(xmlSchematronParserCtxtPtr ctxt, xmlNodePtr node, int error,
               const char *msg, const xmlChar * str1, const xmlChar * str2)
 {
@@ -268,7 +266,7 @@ xmlSchematronPErr(xmlSchematronParserCtxtPtr ctxt, xmlNodePtr node, int error,
 /**
  * xmlSchematronVTypeErrMemory:
  * @node: a context node
- * @extra:  extra information
+ * @extra:  extra informations
  *
  * Handle an out of memory condition
  */
@@ -1068,7 +1066,7 @@ done:
  * @ctxt:  a schema validation context
  *
  * parse a schema definition resource and build an internal
- * XML Schema structure which can be used to validate instances.
+ * XML Shema struture which can be used to validate instances.
  *
  * Returns the internal XML Schematron structure built from the resource or
  *         NULL in case of error
@@ -1287,7 +1285,7 @@ xmlSchematronReportOutput(xmlSchematronValidCtxtPtr ctxt ATTRIBUTE_UNUSED,
  * Build the string being reported to the user.
  *
  * Returns a report string or NULL in case of error. The string needs
- *         to be deallocated by the caller
+ *         to be deallocated by teh caller
  */
 static xmlChar *
 xmlSchematronFormatReport(xmlSchematronValidCtxtPtr ctxt,
@@ -1591,7 +1589,7 @@ xmlSchematronNextNode(xmlNodePtr cur) {
  * xmlSchematronRunTest:
  * @ctxt:  the schema validation context
  * @test:  the current test
- * @instance:  the document instance tree
+ * @instance:  the document instace tree
  * @cur:  the current node in the instance
  *
  * Validate a rule against a tree instance at a given position
@@ -1655,7 +1653,7 @@ xmlSchematronRunTest(xmlSchematronValidCtxtPtr ctxt,
 /**
  * xmlSchematronValidateDoc:
  * @ctxt:  the schema validation context
- * @instance:  the document instance tree
+ * @instance:  the document instace tree
  *
  * Validate a tree instance against the schematron
  *

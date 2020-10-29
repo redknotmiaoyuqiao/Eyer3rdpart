@@ -11,7 +11,7 @@
  *
  * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE AUTHORS AND
+ * MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE AUTHORS AND
  * CONTRIBUTORS ACCEPT NO RESPONSIBILITY IN ANY CONCEIVABLE MANNER.
  *
  * Author: breese@users.sourceforge.net
@@ -33,8 +33,7 @@
  * it seems that having hash randomization might be a good idea
  * when using XML with untrusted data
  */
-#if defined(HAVE_RAND) && defined(HAVE_SRAND) && defined(HAVE_TIME) && \
-    !defined(FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION)
+#if defined(HAVE_RAND) && defined(HAVE_SRAND) && defined(HAVE_TIME)
 #define HASH_RANDOMIZATION
 #endif
 
@@ -79,9 +78,6 @@ struct _xmlHashTable {
  * xmlHashComputeKey:
  * Calculate the hash key
  */
-#ifdef __clang__
-ATTRIBUTE_NO_SANITIZE("unsigned-integer-overflow")
-#endif
 static unsigned long
 xmlHashComputeKey(xmlHashTablePtr table, const xmlChar *name,
 	          const xmlChar *name2, const xmlChar *name3) {
@@ -112,9 +108,6 @@ xmlHashComputeKey(xmlHashTablePtr table, const xmlChar *name,
     return (value % table->size);
 }
 
-#ifdef __clang__
-ATTRIBUTE_NO_SANITIZE("unsigned-integer-overflow")
-#endif
 static unsigned long
 xmlHashComputeQKey(xmlHashTablePtr table,
 		   const xmlChar *prefix, const xmlChar *name,
@@ -175,7 +168,7 @@ xmlHashComputeQKey(xmlHashTablePtr table,
  *
  * Create a new xmlHashTablePtr.
  *
- * Returns the newly created object, or NULL if an error occurred.
+ * Returns the newly created object, or NULL if an error occured.
  */
 xmlHashTablePtr
 xmlHashCreate(int size) {
@@ -209,7 +202,7 @@ xmlHashCreate(int size) {
  *
  * Create a new xmlHashTablePtr which will use @dict as the internal dictionary
  *
- * Returns the newly created object, or NULL if an error occurred.
+ * Returns the newly created object, or NULL if an error occured.
  */
 xmlHashTablePtr
 xmlHashCreateDict(int size, xmlDictPtr dict) {
@@ -365,18 +358,6 @@ xmlHashFree(xmlHashTablePtr table, xmlHashDeallocator f) {
     if (table->dict)
         xmlDictFree(table->dict);
     xmlFree(table);
-}
-
-/**
- * xmlHashDefaultDeallocator:
- * @entry: the hash table entry
- * @name: the entry's name
- *
- * Free a hash table entry with xmlFree.
- */
-void
-xmlHashDefaultDeallocator(void *entry, const xmlChar *name ATTRIBUTE_UNUSED) {
-    xmlFree(entry);
 }
 
 /**
@@ -931,11 +912,8 @@ void
 xmlHashScan3(xmlHashTablePtr table, const xmlChar *name,
 	     const xmlChar *name2, const xmlChar *name3,
 	     xmlHashScanner f, void *data) {
-    stubData stubdata;
-    stubdata.data = data;
-    stubdata.hashscanner = f;
-    xmlHashScanFull3(table, name, name2, name3, stubHashScannerFull,
-                     &stubdata);
+    xmlHashScanFull3 (table, name, name2, name3,
+		      (xmlHashScannerFull) f, data);
 }
 
 /**
@@ -1006,9 +984,6 @@ xmlHashCopy(xmlHashTablePtr table, xmlHashCopier f) {
 	return(NULL);
 
     ret = xmlHashCreate(table->size);
-    if (ret == NULL)
-        return(NULL);
-
     if (table->table) {
 	for(i = 0; i < table->size; i++) {
 	    if (table->table[i].valid == 0)
